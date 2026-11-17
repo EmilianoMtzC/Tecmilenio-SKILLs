@@ -23,6 +23,8 @@ F = '<w:rFonts w:ascii="Calibri" w:cs="Calibri" w:eastAsia="Calibri" w:hAnsi="Ca
 
 def filas():
     out = []
+    if not CURSOS.exists():
+        return out
     for l in CURSOS.read_text(encoding="utf8").splitlines():
         c = [x.strip() for x in l.strip().strip("|").split("|")]
         if l.startswith("|") and len(c) == 3 and c[0] not in ("Curso",) and not set(c[0]) <= set("-"):

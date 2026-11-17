@@ -23,6 +23,7 @@ Esta skill SIEMPRE se combina con **AI-Humanizer**: en cuanto se active, invoca 
 - El tema/contenido a redactar.
 
 ## Tabla curso ↔ profesor (`cursos.md`)
+- `cursos.md` es personal de cada usuario: no viene en el repo (está en `.gitignore`) y el script lo crea solo la primera vez que se pasa `--profesor`. Si no existe, el curso se considera desconocido.
 - Si el curso ya está en la tabla, no preguntes el profesor.
 - Si no está, pregunta el nombre del profesor y pásalo con `--profesor`; el script lo guarda solo.
 - Si el usuario da un profesor distinto para un curso existente, `--profesor` lo actualiza.
