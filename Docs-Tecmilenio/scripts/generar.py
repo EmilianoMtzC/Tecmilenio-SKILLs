@@ -15,8 +15,7 @@ from xml.sax.saxutils import escape
 RAIZ = Path(__file__).resolve().parent.parent
 PLANTILLA = RAIZ / "assets" / "plantilla.docx"
 CURSOS = RAIZ / "cursos.md"
-NOMBRE = "Jesús Emiliano Martínez Ceja"
-MATRICULA = "AL07108460"
+PERFIL = RAIZ / "perfil.md"
 MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
          "septiembre","octubre","noviembre","diciembre"]
 F = '<w:rFonts w:ascii="Calibri" w:cs="Calibri" w:eastAsia="Calibri" w:hAnsi="Calibri"/>'
@@ -30,6 +29,20 @@ def filas():
         if l.startswith("|") and len(c) == 3 and c[0] not in ("Curso",) and not set(c[0]) <= set("-"):
             out.append(c)
     return out
+
+def leer_perfil():
+    """Devuelve (nombre, matrícula) de perfil.md, o ("", "") si no existe."""
+    d = {}
+    if PERFIL.exists():
+        for l in PERFIL.read_text(encoding="utf8").splitlines():
+            m = re.match(r"-\s*(Nombre|Matr[ií]cula):\s*(.+)", l.strip())
+            if m:
+                d[m.group(1)[:3].lower()] = m.group(2).strip()
+    return d.get("nom", ""), d.get("mat", "")
+
+def guardar_perfil(nombre, matricula):
+    PERFIL.write_text("# Perfil\n\nDatos del alumno que usa la skill.\n\n"
+                      f"- Nombre: {nombre}\n- Matrícula: {matricula}\n", encoding="utf8")
 
 def buscar_curso(curso):
     """Devuelve (nombre a mostrar en el documento, profesor) o None."""
@@ -84,11 +97,20 @@ def main():
     a.add_argument("--actividad", required=True)
     a.add_argument("--titulo", required=True)
     a.add_argument("--profesor")
+    a.add_argument("--nombre", help="nombre del alumno; se guarda en perfil.md")
+    a.add_argument("--matricula", help="matrícula del alumno; se guarda en perfil.md")
     a.add_argument("--abreviatura", default="")
     a.add_argument("--cuerpo")
     a.add_argument("--salida", default=".")
     a.add_argument("--pdf", action="store_true", help="solo para revisar el diseño; el entregable es el .docx")
     a = a.parse_args()
+
+    nombre, matricula = leer_perfil()
+    nombre, matricula = a.nombre or nombre, a.matricula or matricula
+    if not nombre or not matricula:
+        sys.exit("PERFIL_DESCONOCIDO: falta perfil.md; pide nombre completo y matrícula y pásalos con --nombre y --matricula.")
+    if a.nombre or a.matricula:
+        guardar_perfil(nombre, matricula)
 
     hallado = buscar_curso(a.curso)
     prof = a.profesor or (hallado[1] if hallado else None)
@@ -105,7 +127,7 @@ def main():
 
     with zipfile.ZipFile(PLANTILLA) as z:
         xml = z.read("word/document.xml").decode("utf8")
-        for pid, v in [("00000002", NOMBRE), ("00000005", " " + MATRICULA),
+        for pid, v in [("00000002", nombre), ("00000005", " " + matricula),
                        ("00000006", curso_doc), ("00000007", prof),
                        ("0000000A", a.actividad),
                        ("0000000C", fecha)]:

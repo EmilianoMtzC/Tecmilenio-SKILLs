@@ -11,8 +11,7 @@ Se activa cuando el mensaje empieza con **"Redacta un documento para la uni"**.
 Esta skill SIEMPRE se combina con **AI-Humanizer**: en cuanto se active, invoca también la skill `AI-Humanizer` (con la herramienta Skill) **antes de redactar**, y escribe el cuerpo del documento siguiendo sus reglas.
 
 ## Datos fijos
-- Nombre: Jesús Emiliano Martínez Ceja
-- Matrícula: AL07108460
+- Nombre y matrícula: salen de `perfil.md` (personal, en `.gitignore`, no viene en el repo). Si no existe, el script imprime `PERFIL_DESCONOCIDO`: pregunta nombre completo y matrícula y pásalos con `--nombre` y `--matricula`; el script los guarda solo para la próxima vez.
 - Fecha: siempre la actual (el script la pone)
 - Plantilla: `assets/plantilla.docx` (copia exacta de "Plantilla entrega de Actividad.docx"; trae logo, encabezado, tabla y pie con número de página). No se modifica; el script la llena.
 
@@ -36,7 +35,7 @@ Esta skill SIEMPRE se combina con **AI-Humanizer**: en cuanto se active, invoca 
    ```
    python3 -I ~/.claude/skills/Docs-Tecmilenio/scripts/generar.py \
      --curso "CURSO" --actividad N --titulo "TÍTULO" \
-     [--profesor "PROF"] [--abreviatura "ABREV"] --cuerpo cuerpo.txt \
+     [--nombre "NOMBRE" --matricula "MAT"] [--profesor "PROF"] [--abreviatura "ABREV"] --cuerpo cuerpo.txt \
      --salida "<carpeta>"
    ```
    Carpeta de salida por defecto: el directorio de trabajo actual. Si el script imprime `PROFESOR_DESCONOCIDO`, pregunta el profesor y repite.
