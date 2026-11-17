@@ -13,7 +13,10 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 RAIZ = Path(__file__).resolve().parent.parent
-PLANTILLA = RAIZ / "assets" / "plantilla.docx"
+PLANTILLA_BASE = RAIZ / "assets" / "plantilla.docx"
+PLANTILLA_PROPIA = RAIZ / "plantilla-personal.docx"
+# Párrafos que el script llena; toda plantilla propia debe conservarlos.
+IDS_REQUERIDOS = ["00000002", "00000005", "00000006", "00000007", "0000000A", "0000000C", "00000010"]
 CURSOS = RAIZ / "cursos.md"
 PERFIL = RAIZ / "perfil.md"
 MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
@@ -43,6 +46,25 @@ def leer_perfil():
 def guardar_perfil(nombre, matricula):
     PERFIL.write_text("# Perfil\n\nDatos del alumno que usa la skill.\n\n"
                       f"- Nombre: {nombre}\n- Matrícula: {matricula}\n", encoding="utf8")
+
+def plantilla_activa():
+    return PLANTILLA_PROPIA if PLANTILLA_PROPIA.exists() else PLANTILLA_BASE
+
+def instalar_plantilla(ruta):
+    ruta = Path(ruta).expanduser()
+    if not ruta.is_file() or ruta.suffix.lower() != ".docx":
+        sys.exit(f"PLANTILLA_INVALIDA: '{ruta}' no es un archivo .docx.")
+    try:
+        with zipfile.ZipFile(ruta) as z:
+            xml = z.read("word/document.xml").decode("utf8")
+    except (zipfile.BadZipFile, KeyError):
+        sys.exit(f"PLANTILLA_INVALIDA: '{ruta}' no es un .docx válido.")
+    faltan = [i for i in IDS_REQUERIDOS if f'w14:paraId="{i}"' not in xml]
+    if faltan:
+        sys.exit("PLANTILLA_INVALIDA: faltan los párrafos con paraId " + ", ".join(faltan)
+                 + ". Edita una copia de assets/plantilla.docx sin borrar esos párrafos.")
+    shutil.copyfile(ruta, PLANTILLA_PROPIA)
+    print(f"Plantilla personal instalada: {PLANTILLA_PROPIA}")
 
 def buscar_curso(curso):
     """Devuelve (nombre a mostrar en el documento, profesor) o None."""
@@ -93,9 +115,11 @@ def cuerpo_xml(texto):
 
 def main():
     a = argparse.ArgumentParser()
-    a.add_argument("--curso", required=True)
-    a.add_argument("--actividad", required=True)
-    a.add_argument("--titulo", required=True)
+    a.add_argument("--curso")
+    a.add_argument("--actividad")
+    a.add_argument("--titulo")
+    a.add_argument("--plantilla", help="ruta de un .docx propio; se valida y se guarda como plantilla personal")
+    a.add_argument("--restaurar-plantilla", action="store_true", help="vuelve a la plantilla oficial incluida en la skill")
     a.add_argument("--profesor")
     a.add_argument("--nombre", help="nombre del alumno; se guarda en perfil.md")
     a.add_argument("--matricula", help="matrícula del alumno; se guarda en perfil.md")
@@ -104,6 +128,16 @@ def main():
     a.add_argument("--salida", default=".")
     a.add_argument("--pdf", action="store_true", help="solo para revisar el diseño; el entregable es el .docx")
     a = a.parse_args()
+
+    if a.restaurar_plantilla:
+        PLANTILLA_PROPIA.unlink(missing_ok=True)
+        print("Plantilla restaurada: se usa la oficial (assets/plantilla.docx).")
+    if a.plantilla:
+        instalar_plantilla(a.plantilla)
+    if not (a.curso and a.actividad and a.titulo):
+        if a.plantilla or a.restaurar_plantilla:
+            return
+        sys.exit("Faltan --curso, --actividad y --titulo.")
 
     nombre, matricula = leer_perfil()
     nombre, matricula = a.nombre or nombre, a.matricula or matricula
@@ -125,7 +159,7 @@ def main():
     fecha = f"{hoy.day} de {MESES[hoy.month-1]} de {hoy.year}"
     cuerpo = Path(a.cuerpo).read_text(encoding="utf8") if a.cuerpo else ""
 
-    with zipfile.ZipFile(PLANTILLA) as z:
+    with zipfile.ZipFile(plantilla_activa()) as z:
         xml = z.read("word/document.xml").decode("utf8")
         for pid, v in [("00000002", nombre), ("00000005", " " + matricula),
                        ("00000006", curso_doc), ("00000007", prof),

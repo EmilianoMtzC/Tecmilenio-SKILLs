@@ -14,6 +14,7 @@ Esta skill SIEMPRE se combina con **AI-Humanizer**: en cuanto se active, invoca 
 - Nombre y matrícula: salen de `perfil.md` (personal, en `.gitignore`, no viene en el repo). Si no existe, el script imprime `PERFIL_DESCONOCIDO`: pregunta nombre completo y matrícula y pásalos con `--nombre` y `--matricula`; el script los guarda solo para la próxima vez.
 - Fecha: siempre la actual (el script la pone)
 - Plantilla: `assets/plantilla.docx` (copia exacta de "Plantilla entrega de Actividad.docx"; trae logo, encabezado, tabla y pie con número de página). No se modifica; el script la llena.
+- **Plantilla propia (opcional):** si el usuario quiere otra plantilla, pásala con `--plantilla ruta.docx` (puede ir sola, sin curso). El script valida que conserve los párrafos que llena (`PLANTILLA_INVALIDA` si faltan; debe partir de una copia de `assets/plantilla.docx` sin borrar la tabla de datos ni el párrafo final) y la guarda como `plantilla-personal.docx` (en `.gitignore`), que desde entonces tiene prioridad. `--restaurar-plantilla` vuelve a la oficial.
 
 ## Datos que da el usuario en cada petición
 - **Curso** → "Nombre del curso". El profesor se busca en `cursos.md`.
