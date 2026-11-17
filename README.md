@@ -18,7 +18,7 @@ Docs-Tecmilenio usa AI-Humanizer automáticamente antes de redactar, así que no
 ## Instalación
 
 ```bash
-git clone https://github.com/contactolatinlink-boop/Tecmilenio-SKILLs ~/tecmilenio-skills
+git clone https://github.com/EmilianoMtzC/Tecmilenio-SKILLs ~/tecmilenio-skills
 ln -s ~/tecmilenio-skills/AI-Humanizer ~/.claude/skills/AI-Humanizer
 ln -s ~/tecmilenio-skills/Docs-Tecmilenio ~/.claude/skills/Docs-Tecmilenio
 ```
